@@ -1,0 +1,1062 @@
+openapi: 3.0.0
+info:
+  description: |
+    # Authentication
+
+    The Turtl API offers two forms of authentication:
+      - Bearer token via header
+      - bearer_authorization via request body
+
+    ### A note on bearer_authorization
+
+    Our use of `bearer_authorization` is a non-standard implementation of authentication that we created to make it easier for you to call our API
+    from within your own tools (suchs as CRMs). As such, it is only supported on endpoints that accept POST requests. GET routes must still use the Authorization header with the Bearer token.
+
+    <SecurityDefinitions />
+
+  version: "1.0.0"
+  title: "Turtl"
+  contact:
+    email: "info@turtl.co"
+    url: "https://turtl.co"
+servers:
+  - url: https://trial.turtl.co/api/v1
+  
+paths:
+  /docs:
+    get:
+      summary: "List Turtl Docs"
+      description: "Retrieve list of Turtl Docs"
+      parameters:
+        - name: paging[perPage]
+          description: "How many items per page to return. Max 1000"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: integer
+        - name: paging[currentPage]
+          description: "Which page of items to return, based on the `paging[perPage]` param"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: integer
+        - name: labels
+          description: "Array of labels to filter by."
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: workspaceId
+          description: "Workspace ID to filter by"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: '#/components/schemas/Doc'
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+  /docs/{docId}:
+    get:
+      summary: "Get Turtl Doc"
+      description: "Retrieve information about a Turtl Doc"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Doc'
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+  /docs/create-single-access:
+    post:
+      summary: "Create a single access Doc URL"
+      description: "Once the URL is accessed, the reader will receive a cookie which allows them to continue reading the Doc and the URL will no longer be valid."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["docId", "docUrl"]
+              properties:
+                docId:
+                  type: string
+                  description: "The ID of the Turtl Doc being accessed. One of `docUrl` or `docId` must be provided"
+                docUrl:
+                  type: string
+                  description: "The URL of the Turtl Doc being accessed. One of `docUrl` or `docId` must be provided"
+                ttlSeconds:
+                  type: integer
+                  description: "How long the token should be valid for. Defaults to 3600 seconds (1 hour)."
+                fields:
+                  type: object
+                  description: "Optional Lead Capture details"
+                  properties:
+                    lead:
+                      type: object
+                      properties:
+                        store:
+                          type: string
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+      responses:
+        "201":
+          description: "The URL you just created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocSingleAccessURL"
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+  /labels:
+    get:
+      summary: "Get Doc labels"
+      description: "A list of all labels from Docs, either all Docs or Docs filtered by workspace ID."
+      parameters:
+        - name: workspaceId
+          description: Workspace ID to filter by
+          in: query
+          schema:
+            type: string
+          allowEmptyValue: true
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Labels'
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+  /personalizations:
+    get:
+      summary: "List Personalizations"
+      description: "The list of Personalizations the user has access to"
+      parameters:
+        - name: paging[perPage]
+          description: "How many items per page to return. Max 1000"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: integer
+        - name: paging[currentPage]
+          description: "Which page of items to return, based on the `paging[perPage]` param"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: integer
+        - name: docId
+          description: "The ID of the Master Turtl Doc to filter by"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: "A list of Personalizations"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/PersonalizationMeta"
+                  meta:
+                    $ref: "#/components/schemas/ListMeta"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: "Create a Personalization"
+      description: "Creates a Personalization for the provided Doc"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["docId", "docUrl", "fields"]
+              properties:
+                docId:
+                  type: string
+                  description: "The ID of the Turtl Doc to personalize. One of `docUrl` or `docId` must be provided"
+                docUrl:
+                  type: string
+                  description: "The URL of the Turtl Doc to personalize. One of `docUrl` or `docId` must be provided"
+                fields:
+                  type: object
+                  description: "The values of fields for the chosen Doc"
+                  properties: 
+                    <schema_properties>:
+                      type: string
+                      description: The values your personalization schema expects, refer to the Turtl Doc you're personalizing for more information.
+                    ttl_author:
+                      type: string
+                      description: "`[Special|Optional]` Field containing the email of an existing user. That user will be set as the author of the personalization."
+                    ttl_access_control: 
+                      type: array
+                      description: "`[Special|Optional]` Field containing an array of patterns that define the access control for the created personalization. The patterns must be either email addresses, or domains with the pattern `@domain.com`"
+                      items: 
+                        type: string
+                        format: email or @domain
+      responses:
+        "201":
+          description: "The Personalization you just created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Personalization"
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+  /personalizations/{id}:
+    parameters:
+      - name: "id"
+        description: "The ID of the personalization"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: ObjectId
+    get:
+      summary: "Retrieve a Personalization"
+      description: "Returns a Personalization by its ID"
+      responses:
+        "200":
+          description: "The Personalization"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Personalization"
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+    put:
+      summary: "Update a Personalization"
+      description: "Updates a Personalization with new values, merging the old values with the new ones"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["fields"]
+              properties:
+                fields:
+                  type: object
+                  description: "The values of fields for the chosen Doc"
+                  properties: 
+                    <schema_properties>:
+                      type: string
+                      description: The values your personalization schema expects, refer to the Turtl Doc you're personalizing for more information.
+                    ttl_author:
+                      type: string
+                      description: "`[Special|Optional]` Field containing the email of an existing user. That user will be set as the author of the personalization."
+                    ttl_access_control: 
+                      type: array
+                      description: "`[Special|Optional]` Field containing an array of patterns that define the access control for the created personalization. The patterns must be either email addresses, or domains with the pattern `@domain.com`"
+                      items: 
+                        type: string
+                        format: email or @domain
+      responses:
+        "200":
+          description: "The updated Personalization"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Personalization"
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: "Update a Personalization"
+      description: "Updates a Personalization with new values, replacing the existing values"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["fields"]
+              properties:
+                fields:
+                  type: object
+                  description: "The values of fields for the chosen Doc"
+                  properties: 
+                    <schema_properties>:
+                      type: string
+                      description: The values your personalization schema expects, refer to the Turtl Doc you're personalizing for more information.
+                    ttl_author:
+                      type: string
+                      description: "`[Special|Optional]` Field containing the email of an existing user. That user will be set as the author of the personalization."
+                    ttl_access_control: 
+                      type: array
+                      description: "`[Special|Optional]` Field containing an array of patterns that define the access control for the created personalization. The patterns must be either email addresses, or domains with the pattern `@domain.com`"
+                      items: 
+                        type: string
+                        format: email or @domain
+      responses:
+        "200":
+          description: "The updated Personalization"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Personalization"
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+    delete:
+      summary: "Delete a Personalization"
+      description: "Deletes a single Personalization by its ID"
+      responses:
+        "200":
+          description: "Success"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+  /personalizationBatches:
+    get:
+      summary: "List Personalization Batches"
+      description: "The list of Personalizations the user has access to"
+      parameters:
+        - name: paging[perPage]
+          description: "How many items per page to return. Max 1000"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: integer
+        - name: paging[currentPage]
+          description: "Which page of items to return, based on the `paging[perPage]` param"
+          in: query
+          allowEmptyValue: true
+          schema:
+            type: integer
+
+      responses:
+        "200":
+          description: "A list of Personalization Batches"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/PersonalizationBatchMeta"
+                  meta:
+                    $ref: "#/components/schemas/ListMeta"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: "Create a Personalization Batch"
+      description: "Creates a Personalization Batch"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["docId", "docUrl", "personalizations"]
+              properties:
+                title:
+                  type: string
+                  description: "The title of the batch. Defaults to a datetime based string."
+                docId:
+                  type: string
+                  description: "The ID of the Turtl Doc to personalize. One of `docUrl` or `docId` must be provided"
+                docUrl:
+                  type: string
+                  description: "The URL of the Turtl Doc to personalize. One of `docUrl` or `docId` must be provided"
+                personalizations:
+                  type: array
+                  description: "An array of personalizations to create"
+                  items:
+                    type: object
+                    required: ["fields"]
+                    properties:
+                      fields:
+                        description: "The values of fields for the chosen Doc"
+                        type: object
+      responses:
+        "201":
+          description: "The Batch you just created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalizationBatch"
+
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+  /personalizationBatches/{id}:
+    parameters:
+      - name: "id"
+        description: "The ID of the Personalization Batch"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: ObjectId
+
+    get:
+      summary: "Retrieve a Personalization Batch"
+      description: "Returns a single Personalization Batch"
+      responses:
+        "200":
+          description: "The Personalization Batch"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalizationBatch"
+        "400":
+          description: "Bad input"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+    delete:
+      summary: "Delete a Personalization Batch"
+      description: "Deletes a single Personalization Batch by its ID. Also deletes all Personalizations from that Batch."
+      responses:
+        "200":
+          description: "Success"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "404":
+          description: "Not found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+        "500":
+          description: "Service error"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    BearerToken:
+      description: "With this method, requests must have the `Authorization` header set. The header should have the format `Authorization: Bearer <token>`. To generate a token, visit <a href='/user/account' target='_blank'>your account page</a>."
+      type: http
+      scheme: bearer
+      bearerFormat: ObjectId
+    RequestBody:
+      description: "With this method, requests must have the `bearer_authorization` field set on the body of the request. The value of the field should have the format `Authorization: Bearer <token>`. To generate a token, visit <a href='/user/account' target='_blank'>your account page</a>."
+      type: apiKey
+      name: 'bearer_authorization'
+      in: body
+
+  schemas:
+    ListMeta:
+      type: "object"
+      properties:
+        currentPage:
+          type: integer
+          readOnly: true
+        perPage:
+          type: integer
+          readOnly: true
+        pageCount:
+          type: integer
+          readOnly: true
+        totalCount:
+          type: integer
+          readOnly: true
+
+    Personalization:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          readOnly: true
+        url:
+          type: "string"
+          readOnly: true
+        docId:
+          type: "string"
+          readOnly: true
+        docUrl:
+          type: "string"
+          readOnly: true
+        personalizationBatchId:
+          type: "string"
+          readOnly: true
+        title:
+          type: "string"
+          readOnly: true
+        fields:
+          type: "object"
+        createdAt:
+          type: "string"
+          readOnly: true
+        createdBy:
+          type: "string"
+          readOnly: true
+        updatedAt:
+          type: "string"
+          readOnly: true
+        updatedBy:
+          type: "string"
+          readOnly: true
+        assets:
+          $ref: "#/components/schemas/PersonalizationAssets"
+
+    PersonalizationMeta:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          readOnly: true
+        url:
+          type: "string"
+          readOnly: true
+        docId:
+          type: "string"
+          readOnly: true
+        docUrl:
+          type: "string"
+          readOnly: true
+        personalizationBatchId:
+          type: "string"
+          readOnly: true
+        title:
+          type: "string"
+          readOnly: true
+        createdAt:
+          type: "string"
+          readOnly: true
+        createdBy:
+          type: "string"
+          readOnly: true
+        updatedAt:
+          type: "string"
+          readOnly: true
+        updatedBy:
+          type: "string"
+          readOnly: true
+        assets:
+          $ref: "#/components/schemas/PersonalizationAssets"
+
+    PersonalizationBatch:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          readOnly: true
+        docId:
+          type: "string"
+          readOnly: true
+        docUrl:
+          type: "string"
+          readOnly: true
+        createdAt:
+          type: "string"
+          readOnly: true
+        createdBy:
+          type: "string"
+          readOnly: true
+        updatedAt:
+          type: "string"
+          readOnly: true
+        updatedBy:
+          type: "string"
+          readOnly: true
+        personalizations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Personalization"
+          readOnly: true
+
+    PersonalizationBatchMeta:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          readOnly: true
+        docId:
+          type: "string"
+          readOnly: true
+        docUrl:
+          type: "string"
+          readOnly: true
+        createdAt:
+          type: "string"
+          readOnly: true
+        createdBy:
+          type: "string"
+          readOnly: true
+        updatedAt:
+          type: "string"
+          readOnly: true
+        updatedBy:
+          type: "string"
+          readOnly: true
+        personalizationCount:
+          type: "integer"
+          readOnly: true
+
+    PersonalizationAssets:
+      type: "object"
+      properties:
+        coverLocation:
+          type: "string"
+          format: "url"
+        animationLocation:
+          type: "string"
+          format: "url"
+        socialLocations:
+          type: "object"
+          properties:
+            twitter:
+              type: "string"
+              format: "url"
+            facebook:
+              type: "string"
+              format: "url"
+
+    Doc:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          readOnly: true
+        title: 
+          type: "string"
+          readOnly: true
+        labels: 
+          type: "array"
+          readOnly: true
+          items:
+            type: "string"
+
+    DocSingleAccessURL:
+      type: "object"
+      properties:
+        docAccessUrl:
+          type: "string"
+          format: "url"
+          readOnly: true
+        tokenId:
+          type: "string"
+          readOnly: true
+        docId:
+          type: "string"
+          readOnly: true
+
+    Labels:
+      type: "object"
+      properties:
+        labels:
+          type: "array"
+          readOnly: true
+          items:
+            type: "string"
+
+    Error:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          readOnly: true

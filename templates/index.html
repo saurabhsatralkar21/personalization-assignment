@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Personalizations</title>
+    <style>
+        .mainContent{
+            display: block;
+        }
+
+        .formContent {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="mainContent">
+        <h2> Upload your .csv file below </h2>
+        <p> 1. Click on the "Choose file" option to select the .csv file </p>
+        <p> 2. Click on the "Create Personalization" button </p>
+        <div class="formContent">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="file">
+                <input type="submit" value="Create Personalization">
+            </form>
+        </div>
+
+    </div>
+</body>
+</html>
