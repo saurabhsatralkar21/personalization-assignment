@@ -20,6 +20,8 @@ async def processData(uploaded_file):
     for row in data[1:]:
         item = row.split(',')
 
+    
+
         information.append({
             f"{keys[0]}": item[0],
             f"{keys[1]}": item[1],

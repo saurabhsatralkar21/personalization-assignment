@@ -10,16 +10,18 @@ async def upload_file():
         return render_template('index.html')
 
     if request.method == 'POST':
+
         # Get the uploaded file from the request
         uploaded_file = request.files['file']
-        
-        information = await processData(uploaded_file)
 
-        createPersonalization(information)
+        information = await processData(uploaded_file)
         
-        return information
-    
-    return render_template('success.html')
+        message = createPersonalization(information)
+
+        if message == "Success":
+            return render_template('success.html')
+        else:
+            return render_template('failed.html')
 
 if __name__ == '__main__':
     app.run()
