@@ -34,7 +34,7 @@ def createPersonalization(information):
         itemDomain = urlparse(item[" logo"]).netloc
 
         payload = {
-            "bearer_authorization": "Authorization: Bearer 64ac39b0be118f3a57c31264",
+            "bearer_authorization": f"Authorization: Bearer {token}",
             "docId": "64a7e93c109059c1be4e21be",
             "docUrl": "https://careers.turtl.co/story/64a7e93c109059c1be4e21be",
             "title": "My Personalizations",
@@ -48,7 +48,7 @@ def createPersonalization(information):
 
         try:
             response = requests.post(url=CreatePersonalization_Endpointurl, json=payload, headers=header)
-            
+
             if response.status_code == 201:
                 print(f"Personalization created for {item['name']}")
             else:
