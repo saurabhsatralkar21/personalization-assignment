@@ -3,6 +3,7 @@ import json
 import os
 from urllib.parse import urlparse
 
+# Token path
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','credentials','token.json'))
 
 def createPersonalization(information):
@@ -16,19 +17,20 @@ def createPersonalization(information):
     CreatePersonalization_Endpointurl = "https://careers.turtl.co/api/v1/personalizations"
 
     try:
-        response = requests.get(url, headers=header)
+        response = requests.get(url, headers=header) # List all docs
         response = response.text
         inJsonFormat = json.loads(response)
 
         for people in inJsonFormat['docs']:
-            if "Saurabh" in people['title']:
+            if "Saurabh" in people['title']: # Get my doc ID
                 docID= people['id']
                 break
     
     except Exception as error:
         print("There was an error")
 
-
+    # Loop through the objects within "information" object variable and make a POST request
+    # by sending all the object information dynamically within "payload"
     for item in information:
 
         itemDomain = urlparse(item[" logo"]).netloc

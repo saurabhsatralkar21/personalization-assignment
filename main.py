@@ -14,10 +14,13 @@ async def upload_file():
         # Get the uploaded file from the request
         uploaded_file = request.files['file']
 
+        # Send the uploaded file to be processed and created as an object
         information = await processData(uploaded_file)
-        
+
+        # Send "information" object to createPersonalization() and make API calls to Turtl for personalization
         message = createPersonalization(information)
 
+        # Render HTML templates as per results
         if message == "Success":
             return render_template('success.html')
         else:
