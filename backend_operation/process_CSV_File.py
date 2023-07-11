@@ -11,9 +11,7 @@ async def processData(uploaded_file):
     
     keys = data[0].split(',')
 
-    print(len(keys))
-    print(len(data))
-
+    # Create an object variable "information" and append all the CSV data into it
     for row in data[1:]:
         item = row.split(',')
         information.append({
